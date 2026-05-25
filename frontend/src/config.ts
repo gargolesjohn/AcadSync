@@ -1,4 +1,4 @@
-export const API_BASE = '/v1';
+export const API_BASE = import.meta.env.PROD ? '/_/backend/v1' : '/v1';
 
 export const ROLES = {
   ADMIN: 'admin',
