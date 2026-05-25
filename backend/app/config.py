@@ -54,11 +54,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-if os.environ.get("VERCEL") == "1" and settings.DATABASE_URL.startswith("sqlite"):
-    import shutil
-    tmp_db_path = "/tmp/acadsync.db"
-    local_db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "acadsync.db")
-    if not os.path.exists(tmp_db_path) and os.path.exists(local_db_path):
-        shutil.copy2(local_db_path, tmp_db_path)
-    settings.DATABASE_URL = f"sqlite:///{tmp_db_path}"

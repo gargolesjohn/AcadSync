@@ -13,7 +13,7 @@ class Schedule(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(String(20), ForeignKey("users.id"), nullable=False)
-    course_code = Column(String(20), nullable=False)
+    course_code = Column(String(100), nullable=False)
     course_label = Column(String(100), nullable=False)
     day_of_week = Column(String(20), nullable=False)  # "Monday", "Tuesday", etc.
     start_time = Column(String(8), nullable=False)  # "08:00"
