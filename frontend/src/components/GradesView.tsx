@@ -350,7 +350,7 @@ export function GradesView() {
                         {canEditGrades ? (
                           <input type="number" className="input"
                             style={{ width: '85px', textAlign: 'center', background: 'white', borderColor: (isOverLimit(g.recitation_score, 10) || isNegative(g.recitation_score)) ? '#ef4444' : 'var(--border)' }} 
-                            value={g.recitation_score || ''} onChange={e => handleUpdateInput(g.student_id, g.subject, 'recitation_score', e.target.value)} onBlur={() => handleSave(g.student_id, g.subject)} />
+                            value={g.recitation_score || ''} onChange={e => handleUpdateInput(g.student_id, g.subject, 'recitation_score', e.target.value)} onBlur={() => handleSave(g.student_id, g.subject)} onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()} />
                         ) : (
                           <div style={{ width: '85px', textAlign: 'center', padding: '6px', background: '#f8fafc', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', fontWeight: 600, margin: 'auto' }}>
                             {g.recitation_score || 0}
@@ -371,7 +371,7 @@ export function GradesView() {
                         {canEditGrades ? (
                           <input type="number" max="100" className="input"
                             style={{ width: '85px', textAlign: 'center', background: 'white', borderColor: (isOverLimit(g.exam_score, 100) || isNegative(g.exam_score)) ? '#ef4444' : 'var(--border)' }} 
-                            value={g.exam_score || ''} onChange={e => handleUpdateInput(g.student_id, g.subject, 'exam_score', e.target.value)} onBlur={() => handleSave(g.student_id, g.subject)} />
+                            value={g.exam_score || ''} onChange={e => handleUpdateInput(g.student_id, g.subject, 'exam_score', e.target.value)} onBlur={() => handleSave(g.student_id, g.subject)} onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()} />
                         ) : (
                           <div style={{ width: '85px', textAlign: 'center', padding: '6px', background: '#f8fafc', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', fontWeight: 600, margin: 'auto' }}>
                             {g.exam_score || 0}
