@@ -150,12 +150,63 @@ def list_grades(
     
     valid_subjects = set(course_map.keys())
     
+    # ---------------------------------------------------------
+    # BULK FETCH OPTIMIZATION
+    # ---------------------------------------------------------
+    student_ids = list(set([g.student_id for g in records]))
+    subject_list = list(valid_subjects)
+    
+    # 1. Bulk Attendance Query
+    attendance_counts = db.query(
+        Attendance.student_id, 
+        Schedule.course_code, 
+        func.count(Attendance.id)
+    ).join(
+        Schedule, Attendance.schedule_id == Schedule.id
+    ).filter(
+        Attendance.student_id.in_(student_ids) if student_ids else False,
+        Schedule.course_code.in_(subject_list) if subject_list else False,
+        Attendance.status.in_(["Approved", "Late"])
+    ).group_by(Attendance.student_id, Schedule.course_code).all()
+    
+    attendance_map = {(row[0], row[1]): row[2] for row in attendance_counts}
+    
+    # 2. Bulk Activities Query
+    assignments = db.query(Assignment).filter(
+        (Assignment.course_name.in_(subject_list)) | (Assignment.course_code.in_(subject_list))
+    ).all() if subject_list else []
+    
+    assignment_map = {a.id: a for a in assignments}
+    assignment_ids = list(assignment_map.keys())
+    
+    submissions = db.query(Submission).filter(
+        Submission.assignment_id.in_(assignment_ids) if assignment_ids else False,
+        Submission.student_id.in_(student_ids) if student_ids else False,
+        Submission.grade.isnot(None)
+    ).all() if (assignment_ids and student_ids) else []
+    
+    student_subject_submissions = {}
+    for s in submissions:
+        a = assignment_map[s.assignment_id]
+        key_name = (s.student_id, a.course_name)
+        key_code = (s.student_id, a.course_code)
+        
+        entry = {"id": s.id, "name": a.title, "score": float(s.grade), "max": float(a.max_points)}
+        if a.max_points > 0:
+            if key_name not in student_subject_submissions: student_subject_submissions[key_name] = []
+            student_subject_submissions[key_name].append(entry)
+            if key_name != key_code:
+                if key_code not in student_subject_submissions: student_subject_submissions[key_code] = []
+                student_subject_submissions[key_code].append(entry)
+    # ---------------------------------------------------------
+    
     for g in records:
         if g.subject not in valid_subjects:
             continue
             
         # Auto-update Attendance Score from check-ins ALWAYS
-        g.attendance_score = get_automated_attendance_score(db, g.student_id, g.subject)
+        total_present = attendance_map.get((g.student_id, g.subject), 0)
+        g.attendance_score = min(100.0, float(total_present))
         
         try:
             quizzes = json.loads(g.quizzes_data)
@@ -168,7 +219,7 @@ def list_grades(
         except: 
             manual_acts = []
 
-        _, auto_details = get_automated_activities_score(db, g.student_id, g.subject)
+        auto_details = student_subject_submissions.get((g.student_id, g.subject), [])
         
         combined_activities = auto_details + manual_acts
         
