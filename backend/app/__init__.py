@@ -1,0 +1,1 @@
+# AcadSync Backend Application
